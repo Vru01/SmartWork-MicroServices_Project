@@ -1,0 +1,18 @@
+const express = require("express");
+const { signup, login } = require("../controllers/authController");
+const { getUsers, getUser, updateUser, deleteUser } = require("../controllers/userController");
+const auth = require("../middleware/authMiddleware"); // import the middleware
+
+const router = express.Router();
+
+// Public routes
+router.post("/signup", signup);
+router.post("/login", login);
+
+// Protected routes (manager only)
+router.get("/", auth(["manager"]), getUsers);
+router.get("/:id", auth(["manager"]), getUser);
+router.put("/:id", auth(["manager"]), updateUser);
+router.delete("/:id", auth(["manager"]), deleteUser);
+
+module.exports = router;

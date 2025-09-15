@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+  # MongoDB
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Web UI
+
+  # User Service
+  user-service:
+    build: ./user-service
+    env_file:
+      - ./user-service/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+    ports:
+      - "5001:5001"
+
+  # Task Service
+  task-service:
+    build: ./task-service
+    env_file:
+      - ./task-service/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+    ports:
+      - "5002:5002"
+
+  # Report Service
+  report-service:
+    build: ./report-service
+    env_file:
+      - ./report-service/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+    ports:
+      - "5003:5003"
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    env_file:
+      - ./api-gateway/.env
+    depends_on:
+      - user-service
+      - task-service
+      - report-service
+    ports:
+      - "8080:8080"
+
+volumes:
+  mongo-data:
